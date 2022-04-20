@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TETRIS</title>
+    <style>
+      :root {
+        --primary-color: #5c00e6;
+        --secondary-color: #f0e6ff;
+        --tertiary-color: #e0ccff;
+      }
+      html {
+        background-color: var(--tertiary-color);
+      }
+      .red {
+        border-color: #cc3300 !important;
+        background-color: #ff9f80;
+      }
+      .orange {
+        border-color: #e67300 !important;
+        background-color: #ffcc66;
+      }
+      .yellow {
+        border-color: #ffb31a !important;
+        background-color: #ffff80;
+      }
+      .green {
+        border-color: #00b300 !important;
+        background-color: #80ff80;
+      }
+      .cyan {
+        border-color: #3399ff !important;
+        background-color: #80e5ff;
+      }
+      .blue {
+        border-color: #0066ff !important;
+        background-color: #80b3ff;
+      }
+      .purple {
+        border-color: #9900cc !important;
+        background-color: #df80ff;
+      }
+      #app {
+        display: flex;
+        flex-direction: row;
+        width: 600px;
+        justify-content: space-around;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      #game-board {
+        font-size: 0;
+        border: 5px outset var(--primary-color);
+        width: 300px;
+        height: 600px;
+        background-color: var(--secondary-color);
+      }
+      #side-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      h1 {
+        font-size: 32px;
+        font-family: courier;
+        text-transform: uppercase;
+        color: var(--primary-color);
+        margin: 0;
+        text-align: center;
+      }
+      #next-panel {
+        font-size: 0;
+        border: 5px outset var(--primary-color);
+        width: 210px;
+        height: 120px;
+        background-color: var(--secondary-color);
+      }
+      #stat-panel {
+        width: 220px;
+      }
+      #stat-panel p {
+        margin: 0;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        height: 28px;
+        border: 5px outset var(--primary-color);
+        background-color: var(--secondary-color);
+        padding: 16px;
+        font-size: 24px;
+        font-family: courier;
+        text-transform: uppercase;
+        color: var(--primary-color);
+      }
+      .empty-block {
+        width: 30px;
+        height: 30px;
+        display: inline-block;
+      }
+      .block {
+        width: 28px;
+        height: 28px;
+        display: inline-block;
+        border: 1px solid black;
+      }
+      .block div {
+        width: 20px;
+        height: 20px;
+        border-width: 4px;
+        border-style: outset;
+      }
+      #overlay {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal {
+        border: 5px outset var(--primary-color);
+        background-color: var(--secondary-color);
+        color: var(--primary-color);
+        padding: 16px;
+        width: 200px;
+        box-shadow: 0 0 5px #333;
+      }
+      #game-over-screen,
+      #paused-screen {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+      }
+      #game-over-screen p,
+      #paused-screen p {
+        font-size: 24px;
+        font-family: courier;
+        text-transform: uppercase;
+      }
+      #game-over-screen button,
+      #paused-screen button {
+        display: block;
+        flex: 1;
+        border: 5px outset var(--primary-color);
+        background-color: var(--secondary-color);
+        color: var(--primary-color);
+        width: 100%;
+        height: 70px;
+        padding: 8px;
+        font-size: 24px;
+        font-family: courier;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .action-panel {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 220px;
+      }
+      .action-panel button {
+        border: 5px outset var(--primary-color);
+        background-color: var(--secondary-color);
+        color: var(--primary-color);
+        height: 70px;
+        padding: 8px;
+        font-size: 24px;
+        font-family: courier;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: var(--primary-color) !important;
+        color: var(--secondary-color) !important;
+      }
+      #overlay,
+      #game-over-screen,
+      #paused-screen {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="game-board"></div>
+      <div id="side-panel">
+        <h1>Tetris</h1>
+        <div id="next-panel"></div>
+        <div id="stat-panel">
+          <p><span>Level</span><span>0</span></p>
+          <p><span>Score</span><span>0</span></p>
+          <p><span>Lines</span><span>0</span></p>
+          <p><span>Speed</span><span>0</span></p>
+        </div>
+        <div class="action-panel">
+          <button id="start-button" onclick="start()">Start</button>
+          <button onclick="toggle_pause()">Pause</button>
+        </div>
+      </div>
+      <div id="overlay">
+        <div class="modal">
+          <div id="game-over-screen">
+            <p>Game Over</p>
+            <button onclick="start()">Reset</button>
+            <button>Home</button>
+          </div>
+          <div id="paused-screen">
+            <p>Paused</p>
+            <button onclick="toggle_pause()">Resume</button>
+            <button>Options</button>
+            <button>Help</button>
+            <button>Quit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+      const O_PIECE = () => {
+        return {
+          type: 'O',
+          prev: { x: 0, y: 0 },
+          now: { x: 0, y: 0 },
+          spawn_point: { x: 4, y: 0 },
+          state: null,
+          states: [
+            // O O
+            // O O
+            {
+              id: 0,
+              height: 2,
+              width: 2,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 0 },
+                { y: 0, x: 1 },
+                { y: 1, x: 0 },
+                { y: 1, x: 1 },
+              ],
+            },
+          ],
+        };
+      };
+      const S_PIECE = () => {
+        return {
+          type: 'S',
+          prev: { x: 0, y: 0 },
+          now: { x: 0, y: 0 },
+          spawn_point: { x: 3, y: 0 },
+          state: null,
+          states: [
+            //   S S
+            // S S
+            {
+              id: 0,
+              height: 2,
+              width: 3,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 1 },
+                { y: 0, x: 2 },
+                { y: 1, x: 0 },
+                { y: 1, x: 1 },
+              ],
+            },
+            //   S
+            //   S S
+            //     S
+            {
+              id: 1,
+              height: 3,
+              width: 2,
+              left_offset: 1,
+              blocks: [
+                { y: 0, x: 1 },
+                { y: 1, x: 1 },
+                { y: 1, x: 2 },
+                { y: 2, x: 2 },
+              ],
+            },
+          ],
+        };
+      };
+      const Z_PIECE = () => {
+        return {
+          type: 'Z',
+          prev: { x: 0, y: 0 },
+          now: { x: 0, y: 0 },
+          spawn_point: { x: 3, y: 0 },
+          state: null,
+          states: [
+            // Z Z
+            //   Z Z
+            {
+              id: 0,
+              height: 2,
+              width: 3,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 0 },
+                { y: 0, x: 1 },
+                { y: 1, x: 1 },
+                { y: 1, x: 2 },
+              ],
+            },
+            //     Z
+            //   Z Z
+            //   Z
+            {
+              id: 1,
+              height: 3,
+              width: 2,
+              left_offset: 1,
+              blocks: [
+                { y: 0, x: 2 },
+                { y: 1, x: 2 },
+                { y: 1, x: 1 },
+                { y: 2, x: 1 },
+              ],
+            },
+          ],
+        };
+      };
+      const L_PIECE = () => {
+        return {
+          type: 'L',
+          prev: { x: 0, y: 0 },
+          now: { x: 0, y: 0 },
+          spawn_point: { x: 3, y: 0 },
+          state: null,
+          states: [
+            // L L L
+            // L
+            {
+              id: 0,
+              height: 2,
+              width: 3,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 0 },
+                { y: 0, x: 1 },
+                { y: 0, x: 2 },
+                { y: 1, x: 0 },
+              ],
+            },
+            // L L
+            //   L
+            //   L
+            {
+              id: 1,
+              height: 3,
+              width: 2,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 0 },
+                { y: 0, x: 1 },
+                { y: 1, x: 1 },
+                { y: 2, x: 1 },
+              ],
+            },
+            //     L
+            // L L L
+            {
+              id: 2,
+              height: 2,
+              width: 3,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 2 },
+                { y: 1, x: 0 },
+                { y: 1, x: 1 },
+                { y: 1, x: 2 },
+              ],
+            },
+            //   L
+            //   L
+            //   L L
+            {
+              id: 3,
+              height: 3,
+              width: 2,
+              left_offset: 1,
+              blocks: [
+                { y: 0, x: 1 },
+                { y: 1, x: 1 },
+                { y: 2, x: 1 },
+                { y: 2, x: 2 },
+              ],
+            },
+          ],
+        };
+      };
+      const J_PIECE = () => {
+        return {
+          type: 'J',
+          prev: { x: 0, y: 0 },
+          now: { x: 0, y: 0 },
+          spawn_point: { x: 3, y: 0 },
+          state: null,
+          states: [
+            // J
+            // J J J
+            {
+              id: 0,
+              height: 2,
+              width: 3,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 0 },
+                { y: 1, x: 0 },
+                { y: 1, x: 1 },
+                { y: 1, x: 2 },
+              ],
+            },
+            //   J J
+            //   J
+            //   J
+            {
+              id: 1,
+              height: 3,
+              width: 2,
+              left_offset: 1,
+              blocks: [
+                { y: 0, x: 1 },
+                { y: 0, x: 2 },
+                { y: 1, x: 1 },
+                { y: 2, x: 1 },
+              ],
+            },
+            // J J J
+            //     J
+            {
+              id: 2,
+              height: 2,
+              width: 3,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 0 },
+                { y: 0, x: 1 },
+                { y: 0, x: 2 },
+                { y: 1, x: 2 },
+              ],
+            },
+            //   J
+            //   J
+            // J J
+            {
+              id: 3,
+              height: 3,
+              width: 2,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 1 },
+                { y: 1, x: 1 },
+                { y: 2, x: 1 },
+                { y: 2, x: 0 },
+              ],
+            },
+          ],
+        };
+      };
+      const I_PIECE = () => {
+        return {
+          type: 'I',
+          prev: { x: 0, y: 0 },
+          now: { x: 0, y: 0 },
+          spawn_point: { x: 3, y: 0 },
+          state: null,
+          states: [
+            // I I I I
+            {
+              id: 0,
+              height: 1,
+              width: 4,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 0 },
+                { y: 0, x: 1 },
+                { y: 0, x: 2 },
+                { y: 0, x: 3 },
+              ],
+            },
+            //   I
+            //   I
+            //   I
+            //   I
+            {
+              id: 1,
+              height: 4,
+              width: 1,
+              left_offset: 1,
+              blocks: [
+                { y: 0, x: 1 },
+                { y: 1, x: 1 },
+                { y: 2, x: 1 },
+                { y: 3, x: 1 },
+              ],
+            },
+          ],
+        };
+      };
+      const T_PIECE = () => {
+        return {
+          type: 'T',
+          prev: { x: 0, y: 0 },
+          now: { x: 0, y: 0 },
+          spawn_point: { x: 3, y: 0 },
+          state: null,
+          states: [
+            // T T T
+            //   T
+            {
+              id: 0,
+              height: 2,
+              width: 3,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 0 },
+                { y: 0, x: 1 },
+                { y: 0, x: 2 },
+                { y: 1, x: 1 },
+              ],
+            },
+            //   T
+            // T T
+            //   T
+            {
+              id: 1,
+              height: 3,
+              width: 2,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 1 },
+                { y: 1, x: 0 },
+                { y: 1, x: 1 },
+                { y: 2, x: 1 },
+              ],
+            },
+            //   T
+            // T T T
+            {
+              id: 2,
+              height: 2,
+              width: 3,
+              left_offset: 0,
+              blocks: [
+                { y: 0, x: 1 },
+                { y: 1, x: 0 },
+                { y: 1, x: 1 },
+                { y: 1, x: 2 },
+              ],
+            },
+            //   T
+            //   T T
+            //   T
+            {
+              id: 3,
+              height: 3,
+              width: 2,
+              left_offset: 1,
+              blocks: [
+                { y: 0, x: 1 },
+                { y: 1, x: 1 },
+                { y: 1, x: 2 },
+                { y: 2, x: 1 },
+              ],
+            },
+          ],
+        };
+      };
+      const pieces = [
+        O_PIECE(),
+        S_PIECE(),
+        Z_PIECE(),
+        L_PIECE(),
+        J_PIECE(),
+        I_PIECE(),
+        T_PIECE(),
+      ];
+      const INITIAL_GAME_SPEED = 600;
+      const SPEED_CAP = 100;
+      const SCORE_MULTIPLIER = [0, 40, 100, 300, 1200];
+      const BOARD_HEIGHT = 20;
+      const BOARD_WIDTH = 10;
+      const EMPTY_SPACE = ' ';
+      const SPACE_BAR = 32;
+      const ESCAPE = 27;
+      const ARROW_LEFT = 37;
+      const ARROW_UP = 38;
+      const ARROW_RIGHT = 39;
+      const ARROW_DOWN = 40;
+      const Z_KEY = 90;
+      const X_KEY = 88;
+
+      var board;
+      var next;
+      var current_piece;
+      var level;
+      var score;
+      var lines;
+      var game_speed;
+      var paused;
+      var game_over;
+      var active_game;
+      var queued_pieces;
+      var gravity;
+      var board_UI = document.getElementById('game-board');
+      var next_UI = document.getElementById('next-panel');
+      var overlay_UI = document.getElementById('overlay');
+      var game_over_screen = document.getElementById('game-over-screen');
+      var paused_screen = document.getElementById('paused-screen');
+      var level_UI = document.querySelector(
+        '#stat-panel>p:nth-child(1)>span:nth-child(2)'
+      );
+      var score_UI = document.querySelector(
+        '#stat-panel>p:nth-child(2)>span:nth-child(2)'
+      );
+      var lines_UI = document.querySelector(
+        '#stat-panel>p:nth-child(3)>span:nth-child(2)'
+      );
+      var game_speed_UI = document.querySelector(
+        '#stat-panel>p:nth-child(4)>span:nth-child(2)'
+      );
+
+      const rand = (min, max) => {
+        return Math.floor(Math.random() * (max - min) + min);
+      };
+
+      const toggle_pause = () => {
+        if (game_over) {
+          return;
+        }
+        paused = !paused;
+        if (paused) {
+          overlay_UI.style.display = 'flex';
+          paused_screen.style.display = 'block';
+          if (gravity) {
+            stop_gravity();
+          }
+        } else {
+          overlay_UI.style.display = 'none';
+          paused_screen.style.display = 'none';
+          if (active_game) {
+            start_gravity();
+          }
+        }
+      };
+
+      const declare_game_over = () => {
+        game_over = true;
+        active_game = false;
+        overlay_UI.style.display = 'flex';
+        game_over_screen.style.display = 'block';
+      };
+
+      const draw_stats = () => {
+        level_UI.innerHTML = level;
+        score_UI.innerHTML = score;
+        lines_UI.innerHTML = lines;
+        game_speed_UI.innerHTML = game_speed;
+      };
+
+      const initialize = () => {
+        board = [];
+        next = [];
+        level = 0;
+        score = 0;
+        lines = 0;
+        game_speed = INITIAL_GAME_SPEED;
+        paused = false;
+        game_over = false;
+        active_game = true;
+        queued_pieces = [];
+        if (gravity) {
+          stop_gravity();
+        }
+        for (let i = 0; i < BOARD_HEIGHT; i++) {
+          let row = [];
+          for (let j = 0; j < BOARD_WIDTH; j++) {
+            row.push(EMPTY_SPACE);
+          }
+          board.push(row);
+        }
+        for (let i = 0; i < 4; i++) {
+          let row = [];
+          for (let j = 0; j < 4; j++) {
+            row.push(EMPTY_SPACE);
+          }
+          next.push(row);
+        }
+        overlay_UI.style.display = 'none';
+        game_over_screen.style.display = 'none';
+      };
+
+      const clear_next = () => {
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 7; j++) {
+            next[i][j] = EMPTY_SPACE;
+          }
+        }
+      };
+
+      const draw_next = () => {
+        clear_next();
+        queued_pieces.push(pieces[rand(0, pieces.length)]);
+        const next_piece = queued_pieces[0];
+        next_piece.states[0].blocks.forEach((block) => {
+          next[block.y + 1][block.x + 2] = next_piece.type;
+        });
+
+        next_UI.innerHTML = '';
+        for (let i = 0; i < 4; i++) {
+          let row = document.createElement('div');
+          for (let j = 0; j < 7; j++) {
+            let block = document.createElement('div');
+            block.classList.add('block');
+            let inner_block = document.createElement('div');
+            let type = next[i][j];
+            style_blocks(type, block, inner_block);
+            block.appendChild(inner_block);
+            row.appendChild(block);
+          }
+          next_UI.appendChild(row);
+        }
+      };
+
+      const draw_board = () => {
+        // console.log(board);
+        board_UI.innerHTML = '';
+        for (let i = 0; i < BOARD_HEIGHT; i++) {
+          let row = document.createElement('div');
+          for (let j = 0; j < BOARD_WIDTH; j++) {
+            let block = document.createElement('div');
+            block.classList.add('block');
+            let inner_block = document.createElement('div');
+            let type = board[i][j];
+            style_blocks(type, block, inner_block);
+            block.appendChild(inner_block);
+            row.appendChild(block);
+          }
+          board_UI.appendChild(row);
+        }
+      };
+
+      const style_blocks = (type, block, inner_block) => {
+        switch (type) {
+          case 'O':
+            inner_block.classList.add('yellow');
+            break;
+          case 'S':
+            inner_block.classList.add('green');
+            break;
+          case 'Z':
+            inner_block.classList.add('red');
+            break;
+          case 'L':
+            inner_block.classList.add('orange');
+            break;
+          case 'J':
+            inner_block.classList.add('blue');
+            break;
+          case 'I':
+            inner_block.classList.add('cyan');
+            break;
+          case 'T':
+            inner_block.classList.add('purple');
+            break;
+          default:
+            block.classList.remove('block');
+            block.classList.add('empty-block');
+        }
+      };
+
+      const get_next_piece = () => {
+        const piece = queued_pieces.shift();
+        draw_next();
+        console.log('getting next piece...', piece);
+        current_piece = piece;
+        current_piece.prev.y = current_piece.spawn_point.y;
+        current_piece.prev.x = current_piece.spawn_point.x;
+        current_piece.now.y = current_piece.spawn_point.y;
+        current_piece.now.x = current_piece.spawn_point.x;
+        current_piece.state = current_piece.states[0];
+        initiate_drop();
+      };
+
+      const initiate_drop = () => {
+        let spawn_blocked = false;
+        current_piece.state.blocks.forEach((block) => {
+          let space =
+            board[current_piece.now.y + block.y][current_piece.now.x + block.x];
+          if (space != EMPTY_SPACE) {
+            spawn_blocked = true;
+          }
+          board[current_piece.now.y + block.y][current_piece.now.x + block.x] =
+            current_piece.type;
+        });
+        if (spawn_blocked) {
+          declare_game_over();
+        } else {
+          console.log('starting gravity...');
+          start_gravity();
+        }
+      };
+
+      const move_left = () => {
+        if (paused || game_over) {
+          return;
+        }
+        // console.log('moving....')
+        current_piece.prev.y = current_piece.now.y;
+        current_piece.prev.x = current_piece.now.x;
+        remove_previous_piece_from_board();
+        current_piece.now.x--;
+        if (collision_occurred()) {
+          console.log('collision_occurred....');
+          current_piece.now.x++;
+        }
+        place_piece_on_board();
+      };
+
+      const move_right = () => {
+        if (paused || game_over) {
+          return;
+        }
+        // console.log('moving....')
+        current_piece.prev.y = current_piece.now.y;
+        current_piece.prev.x = current_piece.now.x;
+        remove_previous_piece_from_board();
+        current_piece.now.x++;
+        if (collision_occurred()) {
+          console.log('collision_occurred....');
+          current_piece.now.x--;
+        }
+        place_piece_on_board();
+      };
+
+      const soft_drop = () => {
+        if (paused || game_over) {
+          return;
+        }
+        // console.log('moving....')
+        current_piece.prev.y = current_piece.now.y;
+        current_piece.prev.x = current_piece.now.x;
+        remove_previous_piece_from_board();
+        current_piece.now.y++;
+        if (collision_occurred()) {
+          console.log('collision_occurred....');
+          current_piece.now.y--;
+          console.log('stopping gravity...');
+          stop_gravity();
+          place_piece_on_board();
+          line_clears();
+          get_next_piece();
+        }
+        place_piece_on_board();
+      };
+
+      const hard_drop = () => {
+        if (paused || game_over) {
+          return;
+        }
+        // console.log('moving....')
+        current_piece.prev.y = current_piece.now.y;
+        current_piece.prev.x = current_piece.now.x;
+        remove_previous_piece_from_board();
+        current_piece.now.y++;
+        if (collision_occurred()) {
+          console.log('collision_occurred....');
+          current_piece.now.y--;
+          console.log('stopping gravity...');
+          stop_gravity();
+          place_piece_on_board();
+          line_clears();
+          get_next_piece();
+        } else {
+          hard_drop();
+        }
+      };
+
+      const rotate_left = () => {
+        if (paused || game_over) {
+          return;
+        }
+        console.log('rotating....');
+        current_piece.prev.y = current_piece.now.y;
+        current_piece.prev.x = current_piece.now.x;
+        remove_previous_piece_from_board();
+        let total_states = current_piece.states.length;
+        let state_id = current_piece.state.id;
+        state_id--;
+        if (state_id < 0) {
+          state_id = total_states - 1;
+        }
+        current_piece.state = current_piece.states[state_id];
+        if (collision_occurred()) {
+          console.log('collision_occurred....');
+          state_id++;
+          if (state_id >= total_states) {
+            state_id = state_id % total_states;
+          }
+          current_piece.state = current_piece.states[state_id];
+        }
+        place_piece_on_board();
+      };
+
+      const rotate_right = () => {
+        if (paused || game_over) {
+          return;
+        }
+        console.log('rotating....');
+        current_piece.prev.y = current_piece.now.y;
+        current_piece.prev.x = current_piece.now.x;
+        remove_previous_piece_from_board();
+        let total_states = current_piece.states.length;
+        let state_id = current_piece.state.id;
+        state_id++;
+        if (state_id >= total_states) {
+          state_id = state_id % total_states;
+        }
+        current_piece.state = current_piece.states[state_id];
+        if (collision_occurred()) {
+          console.log('collision_occurred....');
+          state_id--;
+          if (state_id < 0) {
+            state_id = total_states - 1;
+          }
+          current_piece.state = current_piece.states[state_id];
+        }
+        place_piece_on_board();
+      };
+
+      const line_clears = () => {
+        let lines_cleared = 0;
+        for (let i = board.length - 1; i >= 0; i--) {
+          let row = board[i];
+          let line = row.join();
+          if (!line.includes(EMPTY_SPACE)) {
+            board.splice(0, 0, board[i]);
+            for (let j = 0; j < BOARD_WIDTH; j++) {
+              board[0][j] = EMPTY_SPACE;
+            }
+            board.splice(i + 1, 1);
+            i++;
+            lines++;
+            lines_cleared++;
+          }
+        }
+        level = parseInt(Math.floor(lines / 10)) + 1;
+        let level_speed = 0;
+        for (let i = 0; i < level; i++) {
+          level_speed += (1 / (i + 1)) * 100;
+        }
+        game_speed = INITIAL_GAME_SPEED - parseInt(Math.floor(level_speed));
+        game_speed = game_speed < SPEED_CAP ? SPEED_CAP : game_speed;
+        let multiplier = SCORE_MULTIPLIER[lines_cleared];
+        score += multiplier * (level + 1);
+        draw_stats();
+        draw_board();
+      };
+
+      const collision_occurred = () => {
+        if (current_piece.now.y + current_piece.state.height > BOARD_HEIGHT) {
+          console.log('collided with bounding box...');
+          return true;
+        }
+        if (current_piece.now.x + current_piece.state.left_offset < 0) {
+          console.log('collided with bounding box...');
+          return true;
+        }
+        if (
+          current_piece.now.x +
+            current_piece.state.width +
+            current_piece.state.left_offset >
+          BOARD_WIDTH
+        ) {
+          console.log('collided with bounding box...');
+          return true;
+        }
+        // if current piece touches another piece return true
+        let piece_collision = false;
+        current_piece.state.blocks.forEach((block, index) => {
+          let space =
+            board[current_piece.now.y + block.y][current_piece.now.x + block.x];
+
+          if (space != EMPTY_SPACE) {
+            console.log('collided with another piece...');
+            piece_collision = true;
+          }
+        });
+        return piece_collision;
+      };
+
+      const remove_previous_piece_from_board = () => {
+        current_piece.state.blocks.forEach((block) => {
+          board[current_piece.prev.y + block.y][
+            current_piece.prev.x + block.x
+          ] = EMPTY_SPACE;
+        });
+        draw_board();
+      };
+
+      const place_piece_on_board = () => {
+        current_piece.state.blocks.forEach((block) => {
+          board[current_piece.now.y + block.y][current_piece.now.x + block.x] =
+            current_piece.type;
+        });
+        draw_board();
+      };
+
+      const start_gravity = () => {
+        gravity = setInterval(() => {
+          soft_drop();
+        }, game_speed);
+      };
+
+      const stop_gravity = () => clearInterval(gravity);
+
+      const start = () => {
+        initialize();
+        draw_board();
+        draw_next();
+        draw_stats();
+        get_next_piece();
+      };
+
+      // TODO - options for key mapping
+      // TODO - home and quit goes to home screen
+      // TODO - help button
+
+      (() => {
+        document.body.addEventListener('keydown', (event) => {
+          switch (event.keyCode) {
+            case ARROW_LEFT:
+              move_left();
+              break;
+            case ARROW_RIGHT:
+              move_right();
+              break;
+            case ARROW_DOWN:
+              soft_drop();
+              break;
+            case ARROW_UP:
+              hard_drop();
+              break;
+            case Z_KEY:
+              rotate_left();
+              break;
+            case X_KEY:
+              rotate_right();
+              break;
+            case ESCAPE:
+              toggle_pause();
+              break;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
